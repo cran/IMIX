@@ -23,7 +23,7 @@
 #' @importFrom utils tail
 #' @export
 #' @references
-#' Ziqiao Wang and Peng Wei. 2020. “IMIX: a multivariate mixture model approach to association analysis through multi-omics data integration.” Bioinformatics. \url{https://doi.org/10.1093/bioinformatics/btaa1001}.
+#' Ziqiao Wang and Peng Wei. 2020. “IMIX: a multivariate mixture model approach to association analysis through multi-omics data integration.” Bioinformatics. <doi:10.1093/bioinformatics/btaa1001>.
 
 IMIX_ind=function(data_input, #An n x d data frame or matrix of the summary statistics z score or p value, n is the nubmer of genes, d is the number of data types. Each row is a gene, each column is a data type.
                   data_type=c("p","z"), #Whether the input data is the p values or z scores, default is p value
@@ -38,9 +38,14 @@ IMIX_ind=function(data_input, #An n x d data frame or matrix of the summary stat
   
   
   data_type <- match.arg(data_type)
-  if(data_type=="p"){data_input=apply(data_input,2,function(x) stats::qnorm(x,lower.tail=F))}
+  if (data_type == "p") {
+    if(any(data_input==0 | data_input==1)){cat(crayon::red("Warning: p-value contains 0 or 1!\n"))}
+    data_input[data_input==1]=0.99999
+    data_input[data_input==0]=0.00001
+    data_input = apply(data_input, 2, function(x)
+      stats::qnorm(x, lower.tail = F))
+  }
   
-
 
   n_data=dim(data_input)[2]
   if(length(sigma)!=2*n_data | length(mu)!=2*n_data | length(p)!=(2^n_data) ) {cat(crayon::red("Error: The dimensions of initial values don't match with each other!")); return(1)}

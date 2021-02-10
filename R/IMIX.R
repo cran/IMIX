@@ -30,7 +30,7 @@
 #' @export
 #' 
 #' @references
-#' Ziqiao Wang and Peng Wei. 2020. “IMIX: a multivariate mixture model approach to association analysis through multi-omics data integration.” Bioinformatics. \url{https://doi.org/10.1093/bioinformatics/btaa1001}.
+#' Ziqiao Wang and Peng Wei. 2020. “IMIX: a multivariate mixture model approach to association analysis through multi-omics data integration.” Bioinformatics. <doi:10.1093/bioinformatics/btaa1001>.
 #' 
 #' Tatiana Benaglia, Didier Chauveau, David R. Hunter, and Derek Young. 2009. “mixtools: An R Package for Analyzing Finite Mixture Models.” Journal of Statistical Software 32 (6): 1–29. \url{https://www.jstatsoft.org/v32/i06/}.
 #' @examples 
@@ -93,6 +93,9 @@ IMIX=function(data_input, #An n x d data frame or matrix of the summary statisti
 ){
   data_type <- match.arg(data_type)
   if (data_type == "p") {
+    if(any(data_input==0 | data_input==1)){cat(crayon::red("Warning: p-value contains 0 or 1!\n"))}
+    data_input[data_input==1]=0.99999
+    data_input[data_input==0]=0.00001
     data_input = apply(data_input, 2, function(x)
       stats::qnorm(x, lower.tail = F))
   }
@@ -545,7 +548,8 @@ IMIX=function(data_input, #An n x d data frame or matrix of the summary statisti
   #########################################
   #In case the component labels switched after convergence of the initial values, we need to sort the labels
   
-  if(sort_label==TRUE){
+  if(sort_label==TRUE & model=="all"){
+    cat(crayon::cyan$bold("Start Label Sorting\n"))
     if(dim(data_input)[2] == 2){
       
       mu_tmp=matrix(unlist(IMIX_cor_twostep_output$mu), nrow = 4, byrow = TRUE)
@@ -655,7 +659,7 @@ IMIX=function(data_input, #An n x d data frame or matrix of the summary statisti
     
     
     
-  }
+  } else {cat(crayon::red("Warning: No label sorting, need to identify the output groups\n"))}
   
   
   class_before_controlFDR = apply(best_model$`posterior prob`, 1, which.max)
